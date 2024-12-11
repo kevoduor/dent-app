@@ -1,0 +1,102 @@
+import React, { useState } from 'react';
+import { View, StyleSheet } from 'react-native';
+import { Calendar } from 'react-native-calendars';
+import { List, FAB, Portal, Modal, Button, TextInput } from 'react-native-paper';
+
+const ScheduleScreen = () => {
+  const [selectedDate, setSelectedDate] = useState('');
+  const [appointments, setAppointments] = useState({});
+  const [modalVisible, setModalVisible] = useState(false);
+  const [newAppointment, setNewAppointment] = useState({ time: '', patient: '' });
+
+  const onDayPress = (day) => {
+    setSelectedDate(day.dateString);
+  };
+
+  const addAppointment = () => {
+    setAppointments({
+      ...appointments,
+      [selectedDate]: [
+        ...(appointments[selectedDate] || []),
+        { time: newAppointment.time, patient: newAppointment.patient },
+      ],
+    });
+    setModalVisible(false);
+    setNewAppointment({ time: '', patient: '' });
+  };
+
+  return (
+    <View style={styles.container}>
+      <Calendar
+        onDayPress={onDayPress}
+        markedDates={{
+          [selectedDate]: { selected: true, selectedColor: 'blue' },
+        }}
+      />
+      {selectedDate && (
+        <List.Section>
+          <List.Subheader>Appointments for {selectedDate}</List.Subheader>
+          {appointments[selectedDate]?.map((appointment, index) => (
+            <List.Item
+              key={index}
+              title={appointment.patient}
+              description={appointment.time}
+              left={(props) => <List.Icon {...props} icon="calendar" />}
+            />
+          ))}
+        </List.Section>
+      )}
+      <FAB
+        style={styles.fab}
+        icon="plus"
+        onPress={() => setModalVisible(true)}
+      />
+      <Portal>
+        <Modal visible={modalVisible} onDismiss={() => setModalVisible(false)}>
+          <View style={styles.modalContent}>
+            <TextInput
+              label="Time"
+              value={newAppointment.time}
+              onChangeText={(text) => setNewAppointment({ ...newAppointment, time: text })}
+              style={styles.input}
+            />
+            <TextInput
+              label="Patient"
+              value={newAppointment.patient}
+              onChangeText={(text) => setNewAppointment({ ...newAppointment, patient: text })}
+              style={styles.input}
+            />
+            <Button mode="contained" onPress={addAppointment}>
+              Add Appointment
+            </Button>
+          </View>
+        </Modal>
+      </Portal>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  fab: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    bottom: 0,
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    margin: 20,
+    borderRadius: 4,
+  },
+  input: {
+    marginBottom: 10,
+  },
+});
+
+export default ScheduleScreen;
+
